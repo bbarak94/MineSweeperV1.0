@@ -161,7 +161,7 @@ function renderBoard() {
 
             // console.log('cellClass:',cellClass)
             var visibilityClass = currCell.isShown ? 'show ' : 'hide '
-            strHTML += `\t<td class="td-${currCellId}"><div class="${cellClass} ${visibilityClass}" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">${cellContent}</div></td> \n`
+            strHTML += `\t<td class="td-${currCellId}"><div class="${cellClass} ${visibilityClass}" onLongTouch = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">${cellContent}</div></td> \n`
             // strHTML += `\t<td class="cell ' + ${cellClass} + ${visibilityClass} + '" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">\n`
             // console.log(strHTML)
             strHTML += '</td>\n'
