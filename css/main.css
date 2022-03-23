@@ -12,13 +12,26 @@ body {
     margin: 5px auto;
 }
 
+.restart{
+    display: inline;
+    margin: 6px;
+}
+.smily{
+    user-select: none;
+    margin: 0.3% auto;
+
+}
+.smily-text{
+    font-size: 70%;
+
+}
 .choice {
-    margin: 5px auto;
+    margin: 0 auto;
 }
 
 .counter {
     display: inline-block;
-    margin: 0 20px;
+    margin: 10px 20px;
 }
 
 table {
