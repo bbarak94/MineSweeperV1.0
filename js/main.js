@@ -25,6 +25,7 @@ var gActions = 0
 var gCellCount = 0
 var gFlagsCount = 0
 
+
 function initGame() {
     resetGlobals()
     gGame.sizeRows = gGame.sizeRows > 16 ? gGame.sizeRows / 2 : gGame.sizeRows
@@ -48,6 +49,8 @@ function resetGlobals() {
     }
     gLevel.mines = 0
     setCounters()
+    var elSmily = document.querySelector('.smily')
+    elSmily.innerHTML = '<span class="smily-text">Touch me to RESET</span>😄'
     var elModal = document.querySelector('.modal')
     elModal.style.display = 'none'
     //  gboard = []
@@ -180,25 +183,28 @@ function addEventListenersForCells() {
             var countStr = count + ''
             var classStr = '.td-' + countStr
             var elCell = document.querySelector(classStr)
-            elCell.addEventListener('long-press', function (e,elCell) {
+            elCell.addEventListener('long-press', function (e, elCell) {
                 e.preventDefault()
                 // console.log('e:',e)
                 // console.log(e.target.classList[2])
                 // console.log(e.target.classList[2].split('-')[1])
                 // var cellId = +e.target.classList[2].split('-')[1]
                 // console.log('cellId:',cellId)
-                
-                var cellClass = '.'+e.target.classList[2]+''
+
+                console.log('e.target.classList:', e.target.classList)
+
+                var cellClass = '.' + e.target.classList[2] + ''
                 // console.log('cellClass:',cellClass)
-                
+
                 var elCell = document.querySelector(cellClass)
                 // console.log(elCell)
                 // console.log(e.target.classList[1])
                 var cellPosClass = e.target.classList[1]
+                console.log('e.target.classList[1]',cellPosClass)
                 var posI = +cellPosClass.split('-')[1]
                 var posJ = +cellPosClass.split('-')[2]
                 // console.log('posI,posJ:',posI,posJ)
-                cellRightClicked(e, elCell, posI, posJ,null)
+                cellRightClicked(e, elCell, posI, posJ, null)
                 // cellRightClicked(e, elCell, i, j)
             })
 
@@ -240,6 +246,8 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
         elCell.classList.toggle('hide')
         elCell.style.backgroundColor = 'red'
         gameOver(cell.cellId)
+        var elSmily = document.querySelector('.smily')
+        elSmily.innerHTML = '<span class="smily-text">Touch me to RESET</span>🤯'
     }
     setCounters()
     if (gCellCount === gActions) {
@@ -260,7 +268,7 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
 
 function renderEndGame(lastMineId) {
     var count = 1
-    console.log(lastMineId)
+    // console.log(lastMineId)
     for (var i = 0; i < gBoard.length; i++) {
         for (var j = 0; j < gBoard[0].length; j++) {
             var cellIdStr = '.id-' + count
@@ -309,21 +317,28 @@ function victory() {
     elModal.style.display = 'block'
     elModal.style.color = 'blue'
     elModal.innerText = 'Great! You WON!'
+    var elSmily = document.querySelector('.smily')
+    elSmily.innerHTML = '<span class="smily-text">Touch me to RESET</span>🥳'
 }
 
 function cellRightClicked(event, elCell, i, j) {
     // console.log('cell right clicked')
     var cell = gBoard[i][j]
+    // elCell = document.querySelector('.cell'+i+'-'+j)
     if (gGame.isOn === false && gActions !== 0) return
     if (cell.isShown) return
     if (cell.isMarked === false) {
-        var newCellContent = FLAG_IMG
+        var classStr = 'cell-' + i + '-' + j
+        var newCellContent = `<img class="flag-img ${classStr} show" src="img/flag.png" />`
+        // console.log('classStr:',classStr)
+        
+        // elCell.classList.add(classStr)
         gFlagsCount++
     } else {
         var newCellContent = cell.isMine ? MINE_IMG : cell.minesAroudCount
         gFlagsCount--
     }
-    elCell.classList.toggle('flag')
+    // elCell.classList.toggle('flag')
     elCell.classList.toggle('show')
     elCell.classList.toggle('hide')
     cell.isMarked = !cell.isMarked
@@ -369,7 +384,7 @@ function expandShown(elCell, cellI, cellJ) {
                 elCell.classList.add('show')
                 elCell.classList.remove('hide')
                 gActions++
-                console.log('neg')
+                // console.log('neg')
                 //  console.log(cellContent)
                 //  var cellPos = { i: i, j: j }
                 //  var cellContent = cell.minesAroudCount
