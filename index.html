@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8" />
+        <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+        <link rel="stylesheet" href="css/main.css" />
+        <title>MineSweeper</title>
+    </head>
+    <body onload="initGame()">
+        <h1 class="title">Wellcome to Mine Sweeper!</h1>
+        <form>
+         <div class="level"><input type="radio" onclick="levelSelect(event)"id="Easy" name="Level" value="8"  checked>
+         <label for="html">Easy</label><br></div>
+         <div class="level"><input type="radio" onclick="levelSelect(event)"id="Medium" name="Level" value="16" >
+            <label for="css">Medium</label><br></div>
+         <div class="level"><input type="radio" onclick="levelSelect(event)"id="Hard" name="Level" value="32">
+            <label for="javascript">Hard</label><br></div>
+         <br>
+       </form>
+       <h1 class="choice">Level Choice: Easy 8*8</h1>
+        <div class="counters">
+            <h2 class="counter mines-count"></h2>
+            <h2 class="counter actions-count"></h2>
+            <h2 class="counter cells-count"></h2>
+            <h2 class="counter flag-count"></h2>
+        </div>
+        <table class="board"></table>
+        <h1 class="modal"></h1>
+
+        <script src="js/util.js"></script>
+        <script src="js/main.js"></script>
+    </body>
+</html>
