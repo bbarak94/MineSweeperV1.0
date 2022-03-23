@@ -31,6 +31,7 @@ function initGame() {
     gBoard = buildBoard(gLevel.sizeRows, gLevel.sizeCols)
     setMinesNegsCount()
     renderBoard()
+    addEventListenersForCells()
     setCounters()
 }
 
@@ -161,7 +162,7 @@ function renderBoard() {
 
             // console.log('cellClass:',cellClass)
             var visibilityClass = currCell.isShown ? 'show ' : 'hide '
-            strHTML += `\t<td class="td-${currCellId}"><div class="${cellClass} ${visibilityClass}" onLongTouch = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">${cellContent}</div></td> \n`
+            strHTML += `\t<td class="td-${currCellId}"><div class="${cellClass} ${visibilityClass}" data-long-press-delay="500" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">${cellContent}</div></td> \n`
             // strHTML += `\t<td class="cell ' + ${cellClass} + ${visibilityClass} + '" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">\n`
             // console.log(strHTML)
             strHTML += '</td>\n'
@@ -172,21 +173,51 @@ function renderBoard() {
     elBoard.innerHTML = strHTML
 }
 
+function addEventListenersForCells() {
+    var count = 1
+    for (var i = 0; i < gBoard.length; i++) {
+        for (var j = 0; j < gBoard.length; j++) {
+            var countStr = count + ''
+            var classStr = '.td-' + countStr
+            var elCell = document.querySelector(classStr)
+            elCell.addEventListener('long-press', function (e,elCell) {
+                e.preventDefault()
+                // console.log('e:',e)
+                // console.log(e.target.classList[2])
+                // console.log(e.target.classList[2].split('-')[1])
+                // var cellId = +e.target.classList[2].split('-')[1]
+                // console.log('cellId:',cellId)
+                
+                var cellClass = '.'+e.target.classList[2]+''
+                // console.log('cellClass:',cellClass)
+                
+                var elCell = document.querySelector(cellClass)
+                // console.log(elCell)
+                // console.log(e.target.classList[1])
+                var cellPosClass = e.target.classList[1]
+                var posI = +cellPosClass.split('-')[1]
+                var posJ = +cellPosClass.split('-')[2]
+                // console.log('posI,posJ:',posI,posJ)
+                cellRightClicked(e, elCell, posI, posJ,null)
+                // cellRightClicked(e, elCell, i, j)
+            })
+
+            count = +count
+            count++
+        }
+    }
+}
+
 function getClassName(location) {
     var cellClass = 'cell cell-' + location.i + '-' + location.j
     return cellClass
 }
 
 function cellLeftClicked(event, elCell, i, j, currCellId) {
-    console.log('cell left clicked')
+    // console.log('cell left clicked')
     var cell = gBoard[i][j]
     if (gGame.isOn === false && gActions !== 0) return
     if (cell.isMarked === true || cell.isShown) return
-    console.log('i,j:', i, j)
-    var cellClasses = elCell.classList + ''
-    console.log('cellClasses:', cellClasses)
-    console.log('cell.isMine:', cell.isMine)
-    console.log('cell.isShown:', cell.isShown)
     if (gActions === 0 && cell.isMine === false) {
         cell.isShown = true
         elCell.classList.add('show')
@@ -222,8 +253,8 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
     //  var elCellClicked = document.querySelectorAll('.cell')
     //  console.log(elCellClicked[0])
     // console.log('event:',event)
-    console.log('i:', i)
-    console.log('j:', j)
+    // console.log('i:', i)
+    // console.log('j:', j)
     //  console.log('currCellId:',currCellId)
 }
 
@@ -253,13 +284,14 @@ function renderEndGame(lastMineId) {
 }
 
 function gameOver(cellId) {
-    console.log('gameOver')
-    console.log('cellId:', cellId)
+    // console.log('gameOver')
+    // console.log('cellId:', cellId)
     gGame.isOn = false
     if (gActions === 0) gActions = 1
     renderEndGame(cellId)
     var cellIdStr = '.td-' + cellId
-    console.log(cellIdStr)
+    // console.log(cellIdStr)
+
     var elTableCell = document.querySelector(cellIdStr)
     elTableCell.style.backgroundColor = 'red'
     elTableCell.innerHTML = MINE_STRIKE_IMG
@@ -269,7 +301,7 @@ function gameOver(cellId) {
     elModal.innerText = 'GAME OVER!'
 }
 function victory() {
-    console.log('victory')
+    // console.log('victory')
     gGame.isOn = false
     var elBoard = document.querySelector('.board')
     elBoard.style.display = 'none'
@@ -279,8 +311,8 @@ function victory() {
     elModal.innerText = 'Great! You WON!'
 }
 
-function cellRightClicked(event, elCell, i, j, currCellId) {
-    console.log('cell right clicked')
+function cellRightClicked(event, elCell, i, j) {
+    // console.log('cell right clicked')
     var cell = gBoard[i][j]
     if (gGame.isOn === false && gActions !== 0) return
     if (cell.isShown) return
@@ -305,15 +337,15 @@ function cellRightClicked(event, elCell, i, j, currCellId) {
     //  var elCellClicked = document.querySelectorAll('.cell')
     //  console.log(elCellClicked[0])
     // console.log('event:',event)
-    console.log('i:', i)
-    console.log('j:', j)
+    // console.log('i:', i)
+    // console.log('j:', j)
     // console.log('currCellId:',currCellId)
     setCounters()
 }
 function renderCell(location, value) {
     var cellSelector = '.cell-' + location.i + '-' + location.j
     var elCell = document.querySelector(cellSelector)
-    console.log(elCell)
+    // console.log(elCell)
     //   console.log(value)
     elCell.innerHTML = value
 }
@@ -346,3 +378,152 @@ function expandShown(elCell, cellI, cellJ) {
         }
     }
 }
+
+/*!
+ * long-press-event - v2.4.4
+ * Pure JavaScript long-press-event
+ * https://github.com/john-doherty/long-press-event
+ * @author John Doherty <www.johndoherty.info>
+ * @license MIT
+ */
+!(function (e, t) {
+    'use strict'
+    var n = null,
+        a =
+            'PointerEvent' in e ||
+            (e.navigator && 'msPointerEnabled' in e.navigator),
+        i =
+            'ontouchstart' in e ||
+            navigator.MaxTouchPoints > 0 ||
+            navigator.msMaxTouchPoints > 0,
+        o = a ? 'pointerdown' : i ? 'touchstart' : 'mousedown',
+        r = a ? 'pointerup' : i ? 'touchend' : 'mouseup',
+        m = a ? 'pointermove' : i ? 'touchmove' : 'mousemove',
+        u = 0,
+        s = 0,
+        c = 10,
+        l = 10
+    function v(e) {
+        f(),
+            (e = (function (e) {
+                if (void 0 !== e.changedTouches) return e.changedTouches[0]
+                return e
+            })(e)),
+            this.dispatchEvent(
+                new CustomEvent('long-press', {
+                    bubbles: !0,
+                    cancelable: !0,
+                    detail: { clientX: e.clientX, clientY: e.clientY },
+                    clientX: e.clientX,
+                    clientY: e.clientY,
+                    offsetX: e.offsetX,
+                    offsetY: e.offsetY,
+                    pageX: e.pageX,
+                    pageY: e.pageY,
+                    screenX: e.screenX,
+                    screenY: e.screenY,
+                })
+            ) ||
+                t.addEventListener(
+                    'click',
+                    function e(n) {
+                        t.removeEventListener('click', e, !0),
+                            (function (e) {
+                                e.stopImmediatePropagation(),
+                                    e.preventDefault(),
+                                    e.stopPropagation()
+                            })(n)
+                    },
+                    !0
+                )
+    }
+    function d(a) {
+        f(a)
+        var i = a.target,
+            o = parseInt(
+                (function (e, n, a) {
+                    for (; e && e !== t.documentElement; ) {
+                        var i = e.getAttribute(n)
+                        if (i) return i
+                        e = e.parentNode
+                    }
+                    return a
+                })(i, 'data-long-press-delay', '1500'),
+                10
+            )
+        n = (function (t, n) {
+            if (
+                !(
+                    e.requestAnimationFrame ||
+                    e.webkitRequestAnimationFrame ||
+                    (e.mozRequestAnimationFrame &&
+                        e.mozCancelRequestAnimationFrame) ||
+                    e.oRequestAnimationFrame ||
+                    e.msRequestAnimationFrame
+                )
+            )
+                return e.setTimeout(t, n)
+            var a = new Date().getTime(),
+                i = {},
+                o = function () {
+                    new Date().getTime() - a >= n
+                        ? t.call()
+                        : (i.value = requestAnimFrame(o))
+                }
+            return (i.value = requestAnimFrame(o)), i
+        })(v.bind(i, a), o)
+    }
+    function f(t) {
+        var a
+        ;(a = n) &&
+            (e.cancelAnimationFrame
+                ? e.cancelAnimationFrame(a.value)
+                : e.webkitCancelAnimationFrame
+                ? e.webkitCancelAnimationFrame(a.value)
+                : e.webkitCancelRequestAnimationFrame
+                ? e.webkitCancelRequestAnimationFrame(a.value)
+                : e.mozCancelRequestAnimationFrame
+                ? e.mozCancelRequestAnimationFrame(a.value)
+                : e.oCancelRequestAnimationFrame
+                ? e.oCancelRequestAnimationFrame(a.value)
+                : e.msCancelRequestAnimationFrame
+                ? e.msCancelRequestAnimationFrame(a.value)
+                : clearTimeout(a)),
+            (n = null)
+    }
+    'function' != typeof e.CustomEvent &&
+        ((e.CustomEvent = function (e, n) {
+            n = n || { bubbles: !1, cancelable: !1, detail: void 0 }
+            var a = t.createEvent('CustomEvent')
+            return a.initCustomEvent(e, n.bubbles, n.cancelable, n.detail), a
+        }),
+        (e.CustomEvent.prototype = e.Event.prototype)),
+        (e.requestAnimFrame =
+            e.requestAnimationFrame ||
+            e.webkitRequestAnimationFrame ||
+            e.mozRequestAnimationFrame ||
+            e.oRequestAnimationFrame ||
+            e.msRequestAnimationFrame ||
+            function (t) {
+                e.setTimeout(t, 1e3 / 60)
+            }),
+        t.addEventListener(r, f, !0),
+        t.addEventListener(
+            m,
+            function (e) {
+                var t = Math.abs(u - e.clientX),
+                    n = Math.abs(s - e.clientY)
+                ;(t >= c || n >= l) && f()
+            },
+            !0
+        ),
+        t.addEventListener('wheel', f, !0),
+        t.addEventListener('scroll', f, !0),
+        t.addEventListener(
+            o,
+            function (e) {
+                ;(u = e.clientX), (s = e.clientY), d(e)
+            },
+            !0
+        )
+})(window, document)
