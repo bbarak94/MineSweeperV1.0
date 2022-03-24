@@ -1,39 +1,30 @@
 'use strict'
-console.log('util.js connected')
-// add find neighbors!
-
-function createMat(ROWS, COLS) {
-    var mat = []
-    for (var i = 0; i < ROWS; i++) {
-        var row = []
-        for (var j = 0; j < COLS; j++) {
-            row.push('')
-        }
-        mat.push(row)
+function pad(val) {
+    var valString = val + ''
+    if (valString.length < 2) {
+        return '0' + valString
+    } else {
+        return valString
     }
-    return mat
 }
-function getRandomColor() {
-    var letters = '0123456789ABCDEF'
-    var color = '#'
-    for (var i = 0; i < 6; i++) {
-        color += letters[Math.floor(Math.random() * 16)]
-    }
-    return color
-}
-function createTable(gNums) {
-    // returns squared mat of gNums (gNums must be square Number's length arr)
 
-    var board = []
-    var sidesCount = gNums.length ** 0.5
-    for (var i = 0; i < sidesCount; i++) {
-        board.push([])
-        for (var j = 0; j < sidesCount; j++) {
-            var cell = gNums[j + i * sidesCount]
-            board[i].push(cell)
-        }
-    }
-    return board
+function startTimer() {
+    var elMinutes = document.querySelector('.minutes')
+    var elSeconds = document.querySelector('.seconds')
+    var totalSeconds = gTotalSeconds
+    gStartTime = Date.now()
+    gIntervalID = setInterval(function () {
+        ++totalSeconds
+        var timeDiff = Date.now() - gStartTime
+        elSeconds.innerText = timeDiff
+        var currTime = new Date(timeDiff)
+        elSeconds.innerText = pad(currTime.getSeconds())
+        elMinutes.innerText = pad(currTime.getMinutes())
+    }, 10)
+}
+
+function endTimer() {
+    clearInterval(gIntervalID)
 }
 function createOrderedNums(min, max) {
     // returns array from min to max (unique and ordered)
@@ -56,13 +47,6 @@ function createShuffledNums(min, max) {
     }
     return shuffle(nums)
 }
-function getRandomInt(min, max) {
-    // getRandomInt(1,10) returns a number
-    // includes min and includes max
-    min = Math.ceil(min)
-    max = Math.floor(max)
-    return Math.floor(Math.random() * (max - min + 1)) + min
-}
 function shuffle(items) {
     var randIdx, keep
     for (var i = items.length - 1; i > 0; i--) {
@@ -74,16 +58,6 @@ function shuffle(items) {
     }
     return items
 }
-function copyMat(mat) {
-    var newMat = []
-    for (var i = 0; i < mat.length; i++) {
-        newMat[i] = []
-        for (var j = 0; j < mat[0].length; j++) {
-            newMat[i][j] = mat[i][j]
-        }
-    }
-    return newMat
-}
 function drawNum(arr) {
     var idx = getRandomInt(0, arr.length - 1)
     // var num = gNums2[idx]
@@ -92,103 +66,156 @@ function drawNum(arr) {
     var num = arr.splice(idx, 1)[0]
     return num
 }
-function openVictoryModal() {
-    // VictoryModal:
-    var elTableContainer = document.querySelector('.board-container')
-    elTableContainer.style.display = 'none'
-    var elModal = document.querySelector('.modal')
-    elModal.style.display = 'initial'
-    var elModalText = document.querySelector('.modal-text')
-    elModalText.innerText = 'Game Over - You Won'
-    elModalText.style.color = 'blue'
+function getRandomInt(min, max) {
+    // getRandomInt(1,10) returns a number
+    // includes min and includes max
+    min = Math.ceil(min)
+    max = Math.floor(max)
+    return Math.floor(Math.random() * (max - min + 1)) + min
 }
 
-function openLossModal() {
-    // LossModal:
-    var elTableContainer = document.querySelector('.board-container')
-    elTableContainer.style.display = 'none'
-    var elModal = document.querySelector('.modal')
-    elModal.style.display = 'initial'
-    var elModalText = document.querySelector('.modal-text')
-    elModalText.innerText = 'Game Over - You Lost'
-    elModalText.style.color = 'red'
-}
+// function copyMat(mat) {
+//     var newMat = []
+//     for (var i = 0; i < mat.length; i++) {
+//         newMat[i] = []
+//         for (var j = 0; j < mat[0].length; j++) {
+//             newMat[i][j] = mat[i][j]
+//         }
+//     }
+//     return newMat
+// }
 
-function closeVictoryModal() {
-    var elTableContainer = document.querySelector('.board-container')
-    elTableContainer.style.display = 'initial'
-    var elModal = document.querySelector('.modal')
-    elModal.style.display = 'none'
-}
+// function createMat(ROWS, COLS) {
+//     var mat = []
+//     for (var i = 0; i < ROWS; i++) {
+//         var row = []
+//         for (var j = 0; j < COLS; j++) {
+//             row.push('')
+//         }
+//         mat.push(row)
+//     }
+//     return mat
+// }
+// function getRandomColor() {
+//     var letters = '0123456789ABCDEF'
+//     var color = '#'
+//     for (var i = 0; i < 6; i++) {
+//         color += letters[Math.floor(Math.random() * 16)]
+//     }
+//     return color
+// }
+// function createTable(gNums) {
+//     // returns squared mat of gNums (gNums must be square Number's length arr)
 
-function closeLossModal() {
-    var elTableContainer = document.querySelector('.board-container')
-    elTableContainer.style.display = 'initial'
-    var elModal = document.querySelector('.modal')
-    elModal.style.display = 'none'
-}
+//     var board = []
+//     var sidesCount = gNums.length ** 0.5
+//     for (var i = 0; i < sidesCount; i++) {
+//         board.push([])
+//         for (var j = 0; j < sidesCount; j++) {
+//             var cell = gNums[j + i * sidesCount]
+//             board[i].push(cell)
+//         }
+//     }
+//     return board
+// }
+
+// function openVictoryModal() {
+//     // VictoryModal:
+//     var elTableContainer = document.querySelector('.board-container')
+//     elTableContainer.style.display = 'none'
+//     var elModal = document.querySelector('.modal')
+//     elModal.style.display = 'initial'
+//     var elModalText = document.querySelector('.modal-text')
+//     elModalText.innerText = 'Game Over - You Won'
+//     elModalText.style.color = 'blue'
+// }
+
+// function openLossModal() {
+//     // LossModal:
+//     var elTableContainer = document.querySelector('.board-container')
+//     elTableContainer.style.display = 'none'
+//     var elModal = document.querySelector('.modal')
+//     elModal.style.display = 'initial'
+//     var elModalText = document.querySelector('.modal-text')
+//     elModalText.innerText = 'Game Over - You Lost'
+//     elModalText.style.color = 'red'
+// }
+
+// function closeVictoryModal() {
+//     var elTableContainer = document.querySelector('.board-container')
+//     elTableContainer.style.display = 'initial'
+//     var elModal = document.querySelector('.modal')
+//     elModal.style.display = 'none'
+// }
+
+// function closeLossModal() {
+//     var elTableContainer = document.querySelector('.board-container')
+//     elTableContainer.style.display = 'initial'
+//     var elModal = document.querySelector('.modal')
+//     elModal.style.display = 'none'
+// }
 
 // timer functions:
-function startTimer() {
-    // put in Global:
-    // var gIntervalID
-    // var gStartTime = 0
+// function startTimer() {
+//     // put in Global:
+//     // var gIntervalID
+//     // var gStartTime = 0
 
-    // put in init:
-    // gTotalSeconds = 0
-    // gStartTime = 0
-    // clearInterval(gIntervalID)
-    // document.querySelector('.minutes').innerHTML = pad(0)
-    // document.querySelector('.seconds').innerHTML = pad(parseInt(0))
-    var elMinutes = document.querySelector('.minutes')
-    var elSeconds = document.querySelector('.seconds')
-    // var totalSeconds = gTotalSeconds;
-    gStartTime = Date.now()
-    gIntervalID = setInterval(function () {
-        // ++totalSeconds;
-        var timeDiff = Date.now() - gStartTime
-        elSeconds.innerText = timeDiff
-        // var currTime = new Date(timeDiff)
-        // elSeconds.innerText = pad(currTime.getSeconds());
-        // elMinutes.innerText = pad(currTime.getMinutes());
-    }, 10)
-}
-function endTimer() {
-    clearInterval(gIntervalID)
-}
-function pad(val) {
-    var valString = val + ''
-    if (valString.length < 2) {
-        return '0' + valString
-    } else {
-        return valString
-    }
-}
+//     // put in init:
+//     // gTotalSeconds = 0
+//     // gStartTime = 0
+//     // clearInterval(gIntervalID)
+//     // document.querySelector('.minutes').innerHTML = pad(0)
+//     // document.querySelector('.seconds').innerHTML = pad(parseInt(0))
+//     var elMinutes = document.querySelector('.minutes')
+//     var elSeconds = document.querySelector('.seconds')
+//     // var totalSeconds = gTotalSeconds;
+//     gStartTime = Date.now()
+//     gIntervalID = setInterval(function () {
+//         // ++totalSeconds;
+//         var timeDiff = Date.now() - gStartTime
+//         elSeconds.innerText = timeDiff
+//         // var currTime = new Date(timeDiff)
+//         // elSeconds.innerText = pad(currTime.getSeconds());
+//         // elMinutes.innerText = pad(currTime.getMinutes());
+//     }, 10)
+// }
+// function endTimer() {
+//     clearInterval(gIntervalID)
+// }
+// function pad(val) {
+//     var valString = val + ''
+//     if (valString.length < 2) {
+//         return '0' + valString
+//     } else {
+//         return valString
+//     }
+// }
 ///////////////////////////////////////////////////////////////////////////////////
-function printMat(mat, selector) {
-    var strHTML = '<table border="0"><tbody>'
-    for (var i = 0; i < mat.length; i++) {
-        strHTML += '<tr>'
-        for (var j = 0; j < mat[0].length; j++) {
-            var cell = mat[i][j]
-            var className = 'cell cell-' + i + '-' + j
-            strHTML += '<td class="' + className + '"> ' + cell + ' </td>'
-        }
-        strHTML += '</tr>'
-    }
-    strHTML += '</tbody></table>'
-    var elContainer = document.querySelector(selector)
-    elContainer.innerHTML = strHTML
-}
+// function printMat(mat, selector) {
+//     var strHTML = '<table border="0"><tbody>'
+//     for (var i = 0; i < mat.length; i++) {
+//         strHTML += '<tr>'
+//         for (var j = 0; j < mat[0].length; j++) {
+//             var cell = mat[i][j]
+//             var className = 'cell cell-' + i + '-' + j
+//             strHTML += '<td class="' + className + '"> ' + cell + ' </td>'
+//         }
+//         strHTML += '</tr>'
+//     }
+//     strHTML += '</tbody></table>'
+//     var elContainer = document.querySelector(selector)
+//     elContainer.innerHTML = strHTML
+// }
 // location such as: {i: 2, j: 7}
 // function renderCell(location, value) {
 //     // Select the elCell and set the value
 //     var elCell = document.querySelector(`.cell-${location.i}-${location.j}`)
 //     elCell.innerHTML = value
 // }
-function getRandomIntInclusive(min, max) {
-    return Math.floor(Math.random() * (max - min + 1)) + min
-}
+// function getRandomIntInclusive(min, max) {
+//     return Math.floor(Math.random() * (max - min + 1)) + min
+// }
 
 // clock:
 // function pad(val) {

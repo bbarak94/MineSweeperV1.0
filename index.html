@@ -9,27 +9,61 @@
     </head>
     <body onload="initGame()">
         <h1 class="title">Wellcome to Mine Sweeper!</h1>
+        <div>
+            <h1 class="clock minutes">00</h1>
+            <h1 class="clock">:</h1>
+            <h1 class="clock seconds">00</h1>
+        </div>
         <form>
-         <div class="level"><input type="radio" onclick="levelSelect(event)"id="Easy" name="Level" value="8"  checked>
-         <label for="html">Easy</label><br></div>
-         <div class="level"><input type="radio" onclick="levelSelect(event)"id="Medium" name="Level" value="16" >
-            <label for="css">Medium</label><br></div>
-         <div class="level"><input type="radio" onclick="levelSelect(event)"id="Hard" name="Level" value="32">
-            <label for="javascript">Hard</label><br></div>
-         <br>
+            <div class="level">
+                <input
+                    type="radio"
+                    onclick="levelSelect(event)"
+                    id="Easy"
+                    name="Level"
+                    value="4-4-2"
+                />
+                <label for="html">Easy</label><br />
+            </div>
+            <div class="level">
+                <input
+                    type="radio"
+                    onclick="levelSelect(event)"
+                    id="Medium"
+                    name="Level"
+                    value="8-8-12"
+                    checked
+                />
+                <label for="css">Medium</label><br />
+            </div>
+            <div class="level">
+                <input
+                    type="radio"
+                    onclick="levelSelect(event)"
+                    id="Hard"
+                    name="Level"
+                    value="12-12-30"
+                />
+                <label for="javascript">Hard</label><br />
+            </div>
+            <br />
 
-         <h1 class="smily" onclick="initGame()"><span class="smily-text">Touch me to RESET</span>😄</h1>
-       </form>
-       <h1 class="choice">Level Choice: Easy 8*8</h1>
+            <h1 class="smily" onclick="initGame()">
+                <span class="smily-text">Touch me to RESET</span>😄
+            </h1>
+        </form>
+        <h1 class="choice">Level Choice: Medium 8*8</h1>
         <div class="counters">
             <h2 class="counter mines-count"></h2>
             <h2 class="counter actions-count"></h2>
             <h2 class="counter cells-count"></h2>
+            <h2 class="counter cells-remaining count"></h2>
             <h2 class="counter flag-count"></h2>
         </div>
         <table class="board"></table>
         <h1 class="modal"></h1>
 
+        <script src="js/longPress.js"></script>
         <script src="js/util.js"></script>
         <script src="js/main.js"></script>
     </body>

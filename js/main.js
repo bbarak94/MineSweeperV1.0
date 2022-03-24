@@ -1,5 +1,4 @@
 'use strict'
-console.log('main.js connected')
 window.addEventListener('contextmenu', (e) => e.preventDefault())
 
 var FLAG_IMG = '<img class="flag-img" src="img/flag.png" />'
@@ -12,24 +11,34 @@ var gLevel = {
     sizeCols: 8,
     mines: 0,
 }
+var gMaxMinesAllowed = 12
+var gMinePositions = []
 var gGame = {
     isOn: false,
     shownCount: 0,
     markedCount: 0,
     secsPassed: 0,
 }
+var gCells = []
 
 var gCellId = 1
 var gActions = 0
 
-var gCellCount = 0
+var gTotalEmptyCells = 0
+var gCellsRemainingToWin = 0
 var gFlagsCount = 0
 
+var gTotalSeconds = 0
+var gIntervalID
+var gStartTime
+
+var gExtraStart = false
+var gExpandEmptyNeighbors = []
+var gExtraStartCells = []
 
 function initGame() {
     resetGlobals()
-    gGame.sizeRows = gGame.sizeRows > 16 ? gGame.sizeRows / 2 : gGame.sizeRows
-    gBoard = buildBoard(gLevel.sizeRows, gLevel.sizeCols)
+    buildBoard(gLevel.sizeRows, gLevel.sizeCols)
     setMinesNegsCount()
     renderBoard()
     addEventListenersForCells()
@@ -37,9 +46,19 @@ function initGame() {
 }
 
 function resetGlobals() {
+    var elBoard = document.querySelector('.board')
+    elBoard.style.display = 'table'
+    endTimer()
+    var elMinutes = document.querySelector('.minutes')
+    var elSeconds = document.querySelector('.seconds')
+    elMinutes.innerText = '00'
+    elSeconds.innerText = '00'
+    gTotalSeconds = 0
+    gIntervalID
+    gStartTime
     gCellId = 1
     gActions = 0
-    gCellCount = 0
+    gTotalEmptyCells = 0
     gFlagsCount = 0
     gGame = {
         isOn: false,
@@ -53,21 +72,19 @@ function resetGlobals() {
     elSmily.innerHTML = '<span class="smily-text">Touch me to RESET</span>😄'
     var elModal = document.querySelector('.modal')
     elModal.style.display = 'none'
-    //  gboard = []
 }
-
 function levelSelect(v) {
     //  console.log(v.target.id)
     var levelName = v.target.id
     if (!v.target.value) {
-        var level = 8
+        gLevel.sizeRows = 8
+        gLevel.sizeCols = 8
+        gMaxMinesAllowed = 12
     } else {
-        var level = v.target.value
+        gLevel.sizeRows = +v.target.value.split('-')[0]
+        gLevel.sizeCols = +v.target.value.split('-')[1]
+        gMaxMinesAllowed = +v.target.value.split('-')[2]
     }
-
-    localStorage.setItem('myLevel', level)
-    gLevel.sizeCols = level
-    gLevel.sizeRows = level > 16 ? level / 2 : level
     var elChoice = document.querySelector('.choice')
     elChoice.innerText =
         'Level Choice: ' +
@@ -77,17 +94,39 @@ function levelSelect(v) {
         '*' +
         gLevel.sizeCols
     initGame()
+
+    // console.log(v)
+    // if (!v) return
+    // var levelName = v.target.id
+    // console.log(v.target.value)
+    // gLevel.sizeRows = v.target.value.split('-')[0]
+    // gLevel.sizeCols = v.target.value.split('-')[1]
+    // gMaxMinesAllowed = v.target.value.split('-')[2]
+    // console.log('gMaxMinesAllowed:', gMaxMinesAllowed)
+
+    // var elChoice = document.querySelector('.choice')
+    // elChoice.innerText =
+    //     'Level Choice: ' +
+    //     levelName +
+    //     ' ' +
+    //     gLevel.sizeRows +
+    //     '*' +
+    //     gLevel.sizeCols
+    //     initGame()
 }
 
 function setCounters() {
     var counters = document.querySelectorAll('.counters>h2')
     counters[0].innerText = 'Mines count: ' + gLevel.mines
     counters[1].innerText = 'Actions count: ' + gActions
-    counters[2].innerText = 'Cells remaining to win: ' + gCellCount
-    counters[3].innerText = 'Flags Count: ' + gFlagsCount
+    counters[2].innerText = 'Total empty cells: ' + gTotalEmptyCells
+    counters[3].innerText = 'Cells remaining to win: ' + gCellsRemainingToWin
+    counters[4].innerText = 'Flags Count: ' + gFlagsCount
 }
-function buildBoard(Rows, Cols = Rows) {
-    var board = []
+
+function buildBoard(Rows, Cols) {
+    gBoard = []
+    gCells = []
     for (var i = 0; i < Rows; i++) {
         var row = []
         for (var j = 0; j < Cols; j++) {
@@ -96,27 +135,27 @@ function buildBoard(Rows, Cols = Rows) {
                 pos: { i: i, j: j },
                 minesAroudCount: 0,
                 isShown: false,
-                isMine: mineDeploy(),
+                isMine: false,
+                // isMine: mineDeploy(),
                 isMarked: false,
             }
+            gCells.push({ i, j })
             row.push(cell)
         }
-        board.push(row)
+        gBoard.push(row)
     }
-    return board
+    for (var i = 0; i < gMaxMinesAllowed; i++) {
+        gCells = shuffle(gCells)
+        var newMinePos = drawNum(gCells)
+        gBoard[newMinePos.i][newMinePos.j].isMine = true
+        gLevel.mines++
+    }
+    gCellsRemainingToWin = gLevel.sizeCols * gLevel.sizeCols - gLevel.mines
+    gTotalEmptyCells = gCellsRemainingToWin
 }
 
-// set mines randomly 20% chance to get mine:
-function mineDeploy() {
-    var randomNum = Math.random()
-    var isMine = randomNum <= 0.2 ? true : false
-    if (isMine) {
-        gLevel.mines++
-    } else {
-        gCellCount++
-    }
-    return isMine
-}
+// function mineDeploy() {
+// }
 
 function setMinesNegsCount() {
     for (var i = 0; i < gBoard.length; i++) {
@@ -162,12 +201,8 @@ function renderBoard() {
                 cellClass += 'flag' + ' '
                 cellContent = FLAG_IMG
             }
-
-            // console.log('cellClass:',cellClass)
             var visibilityClass = currCell.isShown ? 'show ' : 'hide '
-            strHTML += `\t<td class="td-${currCellId}"><div class="${cellClass} ${visibilityClass}" data-long-press-delay="500" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">${cellContent}</div></td> \n`
-            // strHTML += `\t<td class="cell ' + ${cellClass} + ${visibilityClass} + '" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">\n`
-            // console.log(strHTML)
+            strHTML += `\t<td class="td-${currCellId} closed"><div class="${cellClass} ${visibilityClass}" data-long-press-delay="500" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">${cellContent}</div></td> \n`
             strHTML += '</td>\n'
         }
         strHTML += '</tr>\n'
@@ -185,29 +220,15 @@ function addEventListenersForCells() {
             var elCell = document.querySelector(classStr)
             elCell.addEventListener('long-press', function (e, elCell) {
                 e.preventDefault()
-                // console.log('e:',e)
-                // console.log(e.target.classList[2])
-                // console.log(e.target.classList[2].split('-')[1])
-                // var cellId = +e.target.classList[2].split('-')[1]
-                // console.log('cellId:',cellId)
-
                 console.log('e.target.classList:', e.target.classList)
-
                 var cellClass = '.' + e.target.classList[2] + ''
-                // console.log('cellClass:',cellClass)
-
                 var elCell = document.querySelector(cellClass)
-                // console.log(elCell)
-                // console.log(e.target.classList[1])
                 var cellPosClass = e.target.classList[1]
-                console.log('e.target.classList[1]',cellPosClass)
+                console.log('e.target.classList[1]', cellPosClass)
                 var posI = +cellPosClass.split('-')[1]
                 var posJ = +cellPosClass.split('-')[2]
-                // console.log('posI,posJ:',posI,posJ)
                 cellRightClicked(e, elCell, posI, posJ, null)
-                // cellRightClicked(e, elCell, i, j)
             })
-
             count = +count
             count++
         }
@@ -220,25 +241,42 @@ function getClassName(location) {
 }
 
 function cellLeftClicked(event, elCell, i, j, currCellId) {
-    // console.log('cell left clicked')
     var cell = gBoard[i][j]
     if (gGame.isOn === false && gActions !== 0) return
     if (cell.isMarked === true || cell.isShown) return
     if (gActions === 0 && cell.isMine === false) {
         cell.isShown = true
+        var classStr = '.td-' + cell.cellId
+        var elTableCell = document.querySelector(classStr)
+        elTableCell.classList.remove('closed')
+        elTableCell.classList.add('opened')
         elCell.classList.add('show')
         elCell.classList.remove('hide')
         gActions++
-        expandShown(elCell, i, j)
+        gCellsRemainingToWin--
+        if (cell.minesAroudCount === 0) {
+            expandShown(elCell, i, j)
+        }
         setCounters()
         gGame.isOn = true
+        if (gFlagsCount === 0) startTimer()
         return
     }
     if (!cell.isShown && !cell.isMine) {
         cell.isShown = true
+
+        var classStr = '.td-' + cell.cellId
+        var elTableCell = document.querySelector(classStr)
+        elTableCell.classList.remove('closed')
+        elTableCell.classList.add('opened')
+
         elCell.classList.toggle('show')
         elCell.classList.toggle('hide')
         gActions++
+        gCellsRemainingToWin--
+        if (cell.minesAroudCount === 0) {
+            expandShown(elCell, i, j)
+        }
     }
     if (cell.isMine === true) {
         cell.isShown = true
@@ -247,28 +285,17 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
         elCell.style.backgroundColor = 'red'
         gameOver(cell.cellId)
         var elSmily = document.querySelector('.smily')
-        elSmily.innerHTML = '<span class="smily-text">Touch me to RESET</span>🤯'
+        elSmily.innerHTML =
+            '<span class="smily-text">Touch me to RESET</span>🤯'
     }
     setCounters()
-    if (gCellCount === gActions) {
+    if (gTotalEmptyCells === gActions && gFlagsCount === gLevel.mines) {
         victory()
     }
-    // console.log('event:',event)
-    //  var cellClasses = elCell.classList + ''
-    //  console.log('cellClasses:', cellClasses)
-
-    //  console.log(elCell)
-    //  var elCellClicked = document.querySelectorAll('.cell')
-    //  console.log(elCellClicked[0])
-    // console.log('event:',event)
-    // console.log('i:', i)
-    // console.log('j:', j)
-    //  console.log('currCellId:',currCellId)
 }
 
-function renderEndGame(lastMineId) {
+function renderEndGame() {
     var count = 1
-    // console.log(lastMineId)
     for (var i = 0; i < gBoard.length; i++) {
         for (var j = 0; j < gBoard[0].length; j++) {
             var cellIdStr = '.id-' + count
@@ -276,15 +303,19 @@ function renderEndGame(lastMineId) {
             var tdCellIdStr = '.td-' + count
             var elTableCell = document.querySelector(tdCellIdStr)
             if (gBoard[i][j].isMarked) {
+                elTableCell.classList.remove('closed')
+                elTableCell.classList.add('opened')
                 elCell.classList.add('show')
                 elCell.classList.remove('hide')
-                elTableCell.style.backgroundColor = 'blue'
+                // elTableCell.style.backgroundColor = 'blue'
             } else if (gBoard[i][j].isMine) {
+                elTableCell.classList.remove('closed')
+                elTableCell.classList.add('opened')
                 elCell.classList.add('show')
                 elCell.classList.remove('hide')
-                elTableCell.style.backgroundColor = 'red'
+                // elTableCell.style.backgroundColor = 'red'
             } else {
-                elTableCell.style.backgroundColor = 'green'
+                // elTableCell.style.backgroundColor = 'green'
             }
             count++
         }
@@ -292,24 +323,22 @@ function renderEndGame(lastMineId) {
 }
 
 function gameOver(cellId) {
-    // console.log('gameOver')
-    // console.log('cellId:', cellId)
     gGame.isOn = false
     if (gActions === 0) gActions = 1
-    renderEndGame(cellId)
+    renderEndGame()
     var cellIdStr = '.td-' + cellId
-    // console.log(cellIdStr)
-
     var elTableCell = document.querySelector(cellIdStr)
     elTableCell.style.backgroundColor = 'red'
-    elTableCell.innerHTML = MINE_STRIKE_IMG
+    // elTableCell.innerHTML = MINE_STRIKE_IMG
+    elTableCell.classList.remove('closed')
+    elTableCell.classList.add('opened')
     var elModal = document.querySelector('.modal')
     elModal.style.display = 'block'
     elModal.style.color = 'red'
     elModal.innerText = 'GAME OVER!'
+    endTimer()
 }
 function victory() {
-    // console.log('victory')
     gGame.isOn = false
     var elBoard = document.querySelector('.board')
     elBoard.style.display = 'none'
@@ -319,6 +348,7 @@ function victory() {
     elModal.innerText = 'Great! You WON!'
     var elSmily = document.querySelector('.smily')
     elSmily.innerHTML = '<span class="smily-text">Touch me to RESET</span>🥳'
+    endTimer()
 }
 
 function cellRightClicked(event, elCell, i, j) {
@@ -328,217 +358,75 @@ function cellRightClicked(event, elCell, i, j) {
     if (gGame.isOn === false && gActions !== 0) return
     if (cell.isShown) return
     if (cell.isMarked === false) {
+        if (gActions === 0) startTimer()
         var classStr = 'cell-' + i + '-' + j
         var newCellContent = `<img class="flag-img ${classStr} show" src="img/flag.png" />`
-        // console.log('classStr:',classStr)
-        
-        // elCell.classList.add(classStr)
         gFlagsCount++
     } else {
         var newCellContent = cell.isMine ? MINE_IMG : cell.minesAroudCount
         gFlagsCount--
     }
-    // elCell.classList.toggle('flag')
     elCell.classList.toggle('show')
     elCell.classList.toggle('hide')
     cell.isMarked = !cell.isMarked
     var cellPos = { i: i, j: j }
     renderCell(cellPos, newCellContent)
-    //  console.log(cellPos, newCellContent)
-
-    //  if(!gBoard[i][j].isShown)
-    // console.log('event:',event)
-    // console.log(elCell)
-    //  var elCellClicked = document.querySelectorAll('.cell')
-    //  console.log(elCellClicked[0])
-    // console.log('event:',event)
-    // console.log('i:', i)
-    // console.log('j:', j)
-    // console.log('currCellId:',currCellId)
     setCounters()
+
+    if (gTotalEmptyCells === gActions && gFlagsCount === gLevel.mines) {
+        victory()
+    }
 }
 function renderCell(location, value) {
     var cellSelector = '.cell-' + location.i + '-' + location.j
     var elCell = document.querySelector(cellSelector)
-    // console.log(elCell)
-    //   console.log(value)
     elCell.innerHTML = value
 }
 
 function cellMarked(elCell) {}
-
 function checkGameOver() {}
-
+var gEmptyCellsExpands = []
+var gCurrentEmptyCellsExpand = []
 function expandShown(elCell, cellI, cellJ) {
+
     for (var i = cellI - 1; i <= cellI + 1; i++) {
         if (i < 0 || i >= gBoard.length) continue
         for (var j = cellJ - 1; j <= cellJ + 1; j++) {
             if (i === cellI && j === cellJ) continue
             if (j < 0 || j >= gBoard[i].length) continue
-            if (gBoard[i][j].isMine === false) {
+            if (
+                gBoard[i][j].isMine === false &&
+                gBoard[i][j].isShown === false
+            ) {
                 var cell = gBoard[i][j]
-                //  var elCell = document.querySelector()
                 cell.isShown = true
-                var cellSelector = '.cell-' + i + '-' + j
-                var elCell = document.querySelector(cellSelector)
-                elCell.classList.add('show')
-                elCell.classList.remove('hide')
                 gActions++
-                // console.log('neg')
-                //  console.log(cellContent)
-                //  var cellPos = { i: i, j: j }
-                //  var cellContent = cell.minesAroudCount
-                //  renderCell(cellPos, cellContent)
+                gCellsRemainingToWin--
+                    var classStr = '.td-' + cell.cellId
+                    var elTableCell = document.querySelector(classStr)
+                    elTableCell.classList.remove('closed')
+                    elTableCell.classList.add('opened')
+                    var cellSelector = '.cell-' + i + '-' + j
+                    var elCell = document.querySelector(cellSelector)
+                    elCell.classList.add('show')
+                    elCell.classList.remove('hide')                    
+
+                if (cell.minesAroudCount === 0) {
+                    gEmptyCellsExpands.push([elCell, i, j])
+                }
             }
         }
     }
+    gCurrentEmptyCellsExpand = []
+    if (gEmptyCellsExpands === []) return
+    for (var eCell of gEmptyCellsExpands) {
+        gCurrentEmptyCellsExpand.push(eCell)
+    }
+    
+    gEmptyCellsExpands = []
+    for (var eCell of gCurrentEmptyCellsExpand) {
+        expandShown(eCell[0], eCell[1], eCell[2])
+    }
 }
 
-/*!
- * long-press-event - v2.4.4
- * Pure JavaScript long-press-event
- * https://github.com/john-doherty/long-press-event
- * @author John Doherty <www.johndoherty.info>
- * @license MIT
- */
-!(function (e, t) {
-    'use strict'
-    var n = null,
-        a =
-            'PointerEvent' in e ||
-            (e.navigator && 'msPointerEnabled' in e.navigator),
-        i =
-            'ontouchstart' in e ||
-            navigator.MaxTouchPoints > 0 ||
-            navigator.msMaxTouchPoints > 0,
-        o = a ? 'pointerdown' : i ? 'touchstart' : 'mousedown',
-        r = a ? 'pointerup' : i ? 'touchend' : 'mouseup',
-        m = a ? 'pointermove' : i ? 'touchmove' : 'mousemove',
-        u = 0,
-        s = 0,
-        c = 10,
-        l = 10
-    function v(e) {
-        f(),
-            (e = (function (e) {
-                if (void 0 !== e.changedTouches) return e.changedTouches[0]
-                return e
-            })(e)),
-            this.dispatchEvent(
-                new CustomEvent('long-press', {
-                    bubbles: !0,
-                    cancelable: !0,
-                    detail: { clientX: e.clientX, clientY: e.clientY },
-                    clientX: e.clientX,
-                    clientY: e.clientY,
-                    offsetX: e.offsetX,
-                    offsetY: e.offsetY,
-                    pageX: e.pageX,
-                    pageY: e.pageY,
-                    screenX: e.screenX,
-                    screenY: e.screenY,
-                })
-            ) ||
-                t.addEventListener(
-                    'click',
-                    function e(n) {
-                        t.removeEventListener('click', e, !0),
-                            (function (e) {
-                                e.stopImmediatePropagation(),
-                                    e.preventDefault(),
-                                    e.stopPropagation()
-                            })(n)
-                    },
-                    !0
-                )
-    }
-    function d(a) {
-        f(a)
-        var i = a.target,
-            o = parseInt(
-                (function (e, n, a) {
-                    for (; e && e !== t.documentElement; ) {
-                        var i = e.getAttribute(n)
-                        if (i) return i
-                        e = e.parentNode
-                    }
-                    return a
-                })(i, 'data-long-press-delay', '1500'),
-                10
-            )
-        n = (function (t, n) {
-            if (
-                !(
-                    e.requestAnimationFrame ||
-                    e.webkitRequestAnimationFrame ||
-                    (e.mozRequestAnimationFrame &&
-                        e.mozCancelRequestAnimationFrame) ||
-                    e.oRequestAnimationFrame ||
-                    e.msRequestAnimationFrame
-                )
-            )
-                return e.setTimeout(t, n)
-            var a = new Date().getTime(),
-                i = {},
-                o = function () {
-                    new Date().getTime() - a >= n
-                        ? t.call()
-                        : (i.value = requestAnimFrame(o))
-                }
-            return (i.value = requestAnimFrame(o)), i
-        })(v.bind(i, a), o)
-    }
-    function f(t) {
-        var a
-        ;(a = n) &&
-            (e.cancelAnimationFrame
-                ? e.cancelAnimationFrame(a.value)
-                : e.webkitCancelAnimationFrame
-                ? e.webkitCancelAnimationFrame(a.value)
-                : e.webkitCancelRequestAnimationFrame
-                ? e.webkitCancelRequestAnimationFrame(a.value)
-                : e.mozCancelRequestAnimationFrame
-                ? e.mozCancelRequestAnimationFrame(a.value)
-                : e.oCancelRequestAnimationFrame
-                ? e.oCancelRequestAnimationFrame(a.value)
-                : e.msCancelRequestAnimationFrame
-                ? e.msCancelRequestAnimationFrame(a.value)
-                : clearTimeout(a)),
-            (n = null)
-    }
-    'function' != typeof e.CustomEvent &&
-        ((e.CustomEvent = function (e, n) {
-            n = n || { bubbles: !1, cancelable: !1, detail: void 0 }
-            var a = t.createEvent('CustomEvent')
-            return a.initCustomEvent(e, n.bubbles, n.cancelable, n.detail), a
-        }),
-        (e.CustomEvent.prototype = e.Event.prototype)),
-        (e.requestAnimFrame =
-            e.requestAnimationFrame ||
-            e.webkitRequestAnimationFrame ||
-            e.mozRequestAnimationFrame ||
-            e.oRequestAnimationFrame ||
-            e.msRequestAnimationFrame ||
-            function (t) {
-                e.setTimeout(t, 1e3 / 60)
-            }),
-        t.addEventListener(r, f, !0),
-        t.addEventListener(
-            m,
-            function (e) {
-                var t = Math.abs(u - e.clientX),
-                    n = Math.abs(s - e.clientY)
-                ;(t >= c || n >= l) && f()
-            },
-            !0
-        ),
-        t.addEventListener('wheel', f, !0),
-        t.addEventListener('scroll', f, !0),
-        t.addEventListener(
-            o,
-            function (e) {
-                ;(u = e.clientX), (s = e.clientY), d(e)
-            },
-            !0
-        )
-})(window, document)
+
