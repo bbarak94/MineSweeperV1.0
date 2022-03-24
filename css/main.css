@@ -28,6 +28,7 @@ form {
     margin: 0.3% auto;
 }
 .smily-text {
+    cursor: pointer;
     font-size: 70%;
 }
 .choice {
@@ -46,6 +47,9 @@ form {
 .hints-count{
     cursor:pointer;
 }
+.lives-count{
+    user-select: none;
+}
 
 table {
     user-select: none;
@@ -56,6 +60,7 @@ table {
     width: 350px; */
 }
 td {
+    cursor: pointer;
     width: 22px;
     height: 22px;
     margin: 0;

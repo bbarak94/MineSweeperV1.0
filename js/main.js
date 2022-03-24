@@ -74,7 +74,7 @@ function resetGlobals() {
     gLevel.mines = 0
     setCounters()
     var elSmily = document.querySelector('.smily')
-    elSmily.innerHTML = '<span class="smily-text">Touch me to RESET</span>😄'
+    elSmily.innerHTML = '<span class="smily-text">Touch me to RESET😄</span>'
     var elModal = document.querySelector('.modal')
     elModal.style.display = 'none'
 }
@@ -150,13 +150,12 @@ function levelSelect(v) {
 }
 function getHint() {
     if (gGame.hintsCount > 0) {
-        var elModal = document.querySelector('.modal')
-        elModal.style.display = 'block'
+        // var elModal = document.querySelector('.modal')
+        // elModal.style.display = 'block'
         var elSmily = document.querySelector('.smily')
         elSmily.innerHTML =
-            '<span class="smily-text">Touch me to RESET</span>💡'
+            '<span class="smily-text">Touch me to RESET💡</span>'
         isHintMode = true
-        console.log('test')
     } else {
         var elModal = document.querySelector('.modal')
         elModal.style.display = 'block'
@@ -215,6 +214,12 @@ function renderBoard() {
             var cellClass =
                 getClassName(currCellPos) + ' id-' + currCellId + ' '
             var cellContent = ''
+            if(currCell.isShown===true){
+                var classStr = '.td-' + currCell.cellId
+                var elTableCell = document.querySelector(classStr)
+                elTableCell.classList.remove('closed')
+                elTableCell.classList.add('opened')
+            }
             if (currCell.isMine === true) {
                 cellClass += 'mine' + ' '
                 cellContent += MINE_IMG
@@ -228,7 +233,8 @@ function renderBoard() {
                 cellContent = FLAG_IMG
             }
             var visibilityClass = currCell.isShown ? 'show ' : 'hide '
-            strHTML += `\t<td class="td-${currCellId} closed"><div class="${cellClass} ${visibilityClass}" data-long-press-delay="500" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">${cellContent}</div></td> \n`
+            var visibilityDivClass = (currCell.isShown) ? 'opened ' : 'closed '
+            strHTML += `\t<td class="td-${currCellId} ${visibilityDivClass}"><div class="${cellClass} ${visibilityClass}" data-long-press-delay="500" oncontextmenu = "cellRightClicked(event, this,${i} ,${j} , ${currCellId})" onclick="cellLeftClicked(event, this,${i} ,${j} , ${currCellId})">${cellContent}</div></td> \n`
             strHTML += '</td>\n'
         }
         strHTML += '</tr>\n'
@@ -247,7 +253,7 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
         gGame.hintsCount--
         var elSmily = document.querySelector('.smily')
         elSmily.innerHTML =
-            '<span class="smily-text">Touch me to RESET</span>😄'
+            '<span class="smily-text">Touch me to RESET😄</span>'
         setCounters()
         var cellI = i
         var cellJ = j
@@ -269,25 +275,24 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
         setTimeout(() => {
             renderBoard()
         }, 3000)
-        console.log('gGame.hintsCount:', gGame.hintsCount)
-
         return
     }
-
     if (gGame.isOn === false && gActions !== 0) return
     if (cell.isMarked === true || cell.isShown) return
     if (gActions === 0 && cell.isMine === true) {
         gMinedStartInitiate = [event, elCell, i, j, currCellId]
         console.log("Bad luck first step on mine doesn't count :)")
         initGame()
+        // renderBoard()
         cellLeftClicked(
             gMinedStartInitiate[0],
             gMinedStartInitiate[1],
             gMinedStartInitiate[2],
             gMinedStartInitiate[3],
             gMinedStartInitiate[4]
-        )
-        renderBoard()
+            )            
+            gMinedStartInitiate = []
+            renderBoard()
         return
     }
     if (gActions === 0 && cell.isMine === false) {
@@ -333,7 +338,7 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
             elModal.innerText = `You stepped on MINE, be carful ${gGame.livesCount} lives left...`
             var elSmily = document.querySelector('.smily')
             elSmily.innerHTML =
-                '<span class="smily-text">Touch me to RESET</span>🤯'
+                '<span class="smily-text">Touch me to RESET🤯</span>'
             elCell.classList.toggle('show')
             elCell.classList.toggle('hide')
             elCell.style.backgroundColor = 'red'
@@ -345,7 +350,7 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
                 elCell.style.backgroundColor = 'initial'
                 var elSmily = document.querySelector('.smily')
                 elSmily.innerHTML =
-                    '<span class="smily-text">Touch me to RESET</span>😄'
+                    '<span class="smily-text">Touch me to RESET😄</span>'
             }, 3000)
         } else {
             cell.isShown = true
@@ -355,7 +360,7 @@ function cellLeftClicked(event, elCell, i, j, currCellId) {
             gameOver(cell.cellId)
             var elSmily = document.querySelector('.smily')
             elSmily.innerHTML =
-                '<span class="smily-text">Touch me to RESET</span>🤯'
+                '<span class="smily-text">Touch me to RESET🤯</span>'
         }
     }
     setCounters()
@@ -415,7 +420,7 @@ function victory() {
     elModal.style.color = 'blue'
     elModal.innerText = 'Great! You WON!'
     var elSmily = document.querySelector('.smily')
-    elSmily.innerHTML = '<span class="smily-text">Touch me to RESET</span>🥳'
+    elSmily.innerHTML = '<span class="smily-text">Touch me to RESET🥳</span>'
     endTimer()
 }
 function cellRightClicked(event, elCell, i, j) {
@@ -498,11 +503,9 @@ function addEventListenersForCells() {
             var elCell = document.querySelector(classStr)
             elCell.addEventListener('long-press', function (e, elCell) {
                 e.preventDefault()
-                console.log('e.target.classList:', e.target.classList)
                 var cellClass = '.' + e.target.classList[2] + ''
                 var elCell = document.querySelector(cellClass)
                 var cellPosClass = e.target.classList[1]
-                console.log('e.target.classList[1]', cellPosClass)
                 var posI = +cellPosClass.split('-')[1]
                 var posJ = +cellPosClass.split('-')[2]
                 cellRightClicked(e, elCell, posI, posJ, null)
