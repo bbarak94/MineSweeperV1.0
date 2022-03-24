@@ -11,6 +11,9 @@ body {
     display: inline;
 }
 
+form {
+    user-select: none;
+}
 .level {
     display: inline-block;
     margin: 5px auto;
@@ -28,12 +31,20 @@ body {
     font-size: 70%;
 }
 .choice {
+    user-select: none;
     margin: 0 auto;
 }
 
+.counters {
+    user-select: none;
+}
 .counter {
     display: inline-block;
     margin: 10px 20px;
+}
+
+.hints-count{
+    cursor:pointer;
 }
 
 table {
@@ -50,16 +61,16 @@ td {
     margin: 0;
     padding: 0;
     font-weight: 700;
-    font-family: 'Arial Black',Arial,sans-serif;
+    font-family: 'Arial Black', Arial, sans-serif;
     font-size: 16px;
     line-height: 16px;
     vertical-align: middle;
     box-sizing: border-box;
     background-repeat: no-repeat;
-    background-color: #BDBDB4;
+    background-color: #bdbdb4;
 }
 
-.blank{
+.blank {
     border-left: solid 1px #7b7b7b;
     border-top: solid 1px #7b7b7b;
     border-bottom: none;
@@ -98,16 +109,16 @@ td {
     margin-bottom: 5%; */
 }
 
-.negs-0{
+.negs-0 {
     color: transparent;
 }
-.negs-1{
+.negs-1 {
     color: blue;
 }
-.negs-2{
+.negs-2 {
     color: green;
 }
-.negs-2{
+.negs-2 {
     color: red;
 }
 
